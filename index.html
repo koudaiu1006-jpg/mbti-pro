@@ -422,9 +422,11 @@
   /* ---------- 出題順をつくる（8問×8ステップ、心理機能6問＋軸2問） ---------- */
   function buildQuestions(){
     var funcPool = [];
+    // 各機能の6問は [0,4,1,2,5,3] の順に出す（肯定文と逆転項目を交互に散らす）
+    var roundPlan = [0,4,1,2,5,3];
     for (var r=0; r<6; r++){
       for (var i=0;i<FUNCS.length;i++){
-        var f = FUNCS[i], item = FQ[f][r];
+        var f = FUNCS[i], item = FQ[f][roundPlan[r]];
         funcPool.push({kind:"f", f:f, t:item.t, rev:!!item.r});
       }
     }
