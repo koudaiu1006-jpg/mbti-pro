@@ -862,6 +862,7 @@
     var t = res.type, atL = atLabel(res.aPct);
     var lines = [];
     lines.push("【MBTI診断結果（64問・心理機能つき）】");
+    var pA = Math.round(res.aPct), pT = 100 - pA;
     lines.push("タイプ：" + t + "-" + atL + "（" + TYPES[t].name + "）");
     lines.push("第2候補：" + res.top3[1].type + "-" + atL + "（" + TYPES[res.top3[1].type].name + " / 適合度 " + (Math.round(res.top3[1].total*10)/10) + "%）");
     lines.push("第3候補：" + res.top3[2].type + "-" + atL + "（" + TYPES[res.top3[2].type].name + " / 適合度 " + (Math.round(res.top3[2].total*10)/10) + "%）");
@@ -871,7 +872,7 @@
       var A = Math.round(res.ax[d.key].aPct);
       lines.push(d.label + "：" + d.a + " " + A + "% ／ " + d.b + " " + (100-A) + "%");
     });
-    lines.push("向き合い方：" + atName(res.aPct) + " " + atLabel(res.aPct) + " " + Math.round(res.aPct) + "% ／ " + (res.aPct>=50?"慎重型 T ":"自己主張型 A ") + Math.round(100-res.aPct) + "%");
+    lines.push("向き合い方：" + atName(res.aPct) + " " + atL + " " + (atL === "A" ? pA : pT) + "% ／ " + (atL === "A" ? "慎重型 T " : "自己主張型 A ") + (atL === "A" ? pT : pA) + "%");
     lines.push("");
     lines.push("■心理機能（8つ）");
     lines.push("Ti " + Math.round(res.fs.Ti) + " ／ Te " + Math.round(res.fs.Te) + " ／ Fi " + Math.round(res.fs.Fi) + " ／ Fe " + Math.round(res.fs.Fe));
@@ -916,6 +917,7 @@
   show("intro");
   window.__QS = QS;
   window.__analyze = analyze;
+  window.__shareText = buildShareText;
 })();
 </script>
 </body>
