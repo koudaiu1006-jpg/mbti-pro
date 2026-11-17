@@ -101,6 +101,8 @@
   .kicker{font-size:11px; font-weight:800; letter-spacing:.12em; color:var(--accent); margin-bottom:6px;}
   .body{font-size:13.5px; color:var(--ink2);}
   .body b{color:var(--ink);}
+  .bullets{margin:0 0 12px; padding-left:1.15em; font-size:13.5px; color:var(--ink2);}
+  .bullets li{margin:2px 0;}
   .chips2{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
   .cand{flex:1 1 46%; background:#fbfaff; border:1px solid var(--line); border-radius:14px; padding:10px 12px;}
   .cand .k{font-size:10.5px; color:var(--muted); font-weight:700; letter-spacing:.06em;}
@@ -782,6 +784,7 @@
     var fit = Math.round(top.total*10)/10;
 
     var html = "";
+    var pL = atL === "A" ? pA : pT;
     html += '<div class="hero">'+
       '<div class="tag">あなたのタイプ</div>'+
       '<div class="code">'+t+'<small>-'+atL+'</small></div>'+
@@ -789,7 +792,7 @@
       '<div class="catch">'+info.catch+'</div>'+
       '<div class="fitrow">'+
         '<span class="chip">適合度 '+fit+'%</span>'+
-        '<span class="chip">'+atL+'（'+pA+'%）</span>'+
+        '<span class="chip">'+atL+'（'+pL+'%）</span>'+
         '<span class="chip">64問・心理機能診断</span>'+
       '</div>'+
     '</div>';
@@ -813,7 +816,7 @@
       '<div class="kicker">思考スタイル</div>'+
       '<p class="body">'+info.style+'</p>'+
       '<div class="kicker" style="margin-top:14px;">強み</div>'+
-      '<p class="body">'+info.strengths.map(function(s){ return '・'+s; }).join('<br>')+'</p>'+
+      '<ul class="bullets">'+info.strengths.map(function(s){ return '<li>'+s+'</li>'; }).join('')+'</ul>'+
       '<div class="kicker" style="margin-top:14px;">落とし穴</div>'+
       '<p class="body">'+info.pitfall+'</p>'+
       '<div class="kicker" style="margin-top:14px;">向いている環境</div>'+
