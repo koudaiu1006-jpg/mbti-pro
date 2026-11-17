@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ff">
+<meta name="description" content="ユングの8つの心理機能を48問で精密測定し、4軸16問と合わせて64問で判定するMBTI診断。心理機能グラフと第2・第3候補まで表示します。">
+<title>MBTI 精密診断｜64問・心理機能グラフつき</title>
+<style>
+  :root{
+    --bg:#f4f1ff; --bg2:#eef6ff; --card:#ffffff; --ink:#1c1b2b; --ink2:#5b5875;
+    --muted:#8f8ba8; --line:#e8e4f5; --accent:#6d5efc; --accent2:#a855f7;
+    --ok:#10b981; --warn:#f59e0b; --shadow:0 10px 30px rgba(60,45,140,.10);
+    --radius:18px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #e7e0ff 0%, rgba(231,224,255,0) 60%),
+      radial-gradient(900px 500px at 110% 10%, #dff0ff 0%, rgba(223,240,255,0) 55%),
+      var(--bg);
+    background-attachment:fixed;
+    line-height:1.75;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px calc(28px + env(safe-area-inset-bottom));}
+  .bar{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 2px 6px; position:sticky; top:0; z-index:20;
+       backdrop-filter:blur(10px); background:linear-gradient(to bottom, rgba(244,241,255,.94), rgba(244,241,255,.72));}
+  .brand{font-size:14px; letter-spacing:.02em; color:var(--ink2); font-weight:600;}
+  .brand b{color:var(--accent); font-weight:800;}
+  .bar-right{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .screen{animation:fade .25s ease;}
+  .hidden{display:none !important;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; border:1px solid rgba(255,255,255,.7);}
+  h1{font-size:22px; line-height:1.4; margin:6px 0 10px; letter-spacing:.01em;}
+  h2{font-size:16px; margin:0 0 10px; letter-spacing:.01em;}
+  p{margin:0 0 12px;}
+  .lead{color:var(--ink2); font-size:14px;}
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; letter-spacing:.04em;
+        color:var(--accent); background:#efeaff; border-radius:999px; padding:4px 10px;}
+  .facts{list-style:none; padding:0; margin:16px 0 18px;}
+  .facts li{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; color:var(--ink2); padding:5px 0;}
+  .facts li b{color:var(--ink); font-weight:700;}
+  .facts .ico{flex:0 0 auto; width:20px; text-align:center;}
+  .start{width:100%; border:0; border-radius:14px; padding:16px; font-size:16px; font-weight:800; color:#fff; cursor:pointer;
+         background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%); box-shadow:0 10px 24px rgba(109,94,252,.34);
+         transition:transform .12s ease, box-shadow .12s ease; letter-spacing:.02em;}
+  .start:active{transform:scale(.985); box-shadow:0 4px 14px rgba(109,94,252,.28);}
+  .ghost{width:100%; border:1px solid var(--line); background:#fff; color:var(--ink2); border-radius:14px; padding:13px;
+         font-size:14px; font-weight:700; cursor:pointer; margin-top:10px;}
+  .ghost:active{background:#faf8ff;}
+  .tiny{font-size:11.5px; color:var(--muted); line-height:1.6;}
+  .note{background:#f8f6ff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; font-size:12px; color:var(--ink2);}
+
+  /* quiz */
+  .progress{height:8px; border-radius:999px; background:#e6e1f7; overflow:hidden; margin:10px 0 6px;}
+  .progress > i{display:block; height:100%; width:0; border-radius:999px;
+                background:linear-gradient(90deg,var(--accent) 0%,var(--accent2) 100%); transition:width .28s cubic-bezier(.4,0,.2,1);}
+  .qmeta{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; margin-bottom:14px;}
+  .qmeta .cur{color:var(--accent); font-weight:800;}
+  .qcard{min-height:280px; display:flex; flex-direction:column;}
+  .qtext{font-size:18.5px; font-weight:700; line-height:1.65; letter-spacing:.01em; margin:2px 0 20px; min-height:96px;
+         display:flex; align-items:center;}
+  .opts{display:flex; flex-direction:column; gap:9px; margin-top:auto;}
+  .opt{display:flex; align-items:center; gap:12px; width:100%; text-align:left; border:1px solid var(--line);
+       background:#fff; border-radius:14px; padding:14px 15px; font-size:15px; font-weight:600; color:var(--ink);
+       cursor:pointer; transition:background .12s, border-color .12s, transform .08s;}
+  .opt:active{transform:scale(.99);}
+  .opt .dot{flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:2px solid #d7d0ee; display:grid; place-items:center;
+            font-size:11px; color:var(--muted); font-weight:800; transition:all .12s;}
+  .opt .scale{margin-left:auto; font-size:10.5px; color:var(--muted); font-weight:600; letter-spacing:.02em;}
+  .opt[data-v="1"] .dot{border-color:#cfd8ea;}
+  .opt[data-v="5"] .dot{border-color:#cfc6ff;}
+  .opt.on{border-color:var(--accent); background:#f3f0ff; box-shadow:0 4px 14px rgba(109,94,252,.16);}
+  .opt.on .dot{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .qfoot{display:flex; gap:10px; margin-top:14px;}
+  .qfoot button{flex:1; border:1px solid var(--line); background:#fff; color:var(--ink2); border-radius:12px; padding:11px;
+                font-size:13px; font-weight:700; cursor:pointer;}
+  .qfoot button:disabled{opacity:.4; cursor:default;}
+  .hint{text-align:center; font-size:11px; color:var(--muted); margin-top:10px;}
+
+  /* result */
+  .hero{background:linear-gradient(150deg,#4b3ae8 0%,#7a52f4 48%,#a855f7 100%); color:#fff; border-radius:22px;
+        padding:22px 20px 20px; box-shadow:0 16px 36px rgba(90,60,220,.28); position:relative; overflow:hidden;}
+  .hero:after{content:""; position:absolute; inset:auto -40px -70px auto; width:200px; height:200px; border-radius:50%;
+              background:rgba(255,255,255,.10);}
+  .hero .tag{font-size:11px; letter-spacing:.14em; font-weight:700; opacity:.82;}
+  .code{font-size:46px; font-weight:900; letter-spacing:.06em; line-height:1.1; margin:2px 0 2px; font-variant-numeric:tabular-nums;}
+  .code small{font-size:20px; opacity:.85; margin-left:4px; letter-spacing:.02em;}
+  .tname{font-size:17px; font-weight:800; margin-bottom:10px;}
+  .catch{font-size:13.5px; line-height:1.7; opacity:.95; border-top:1px solid rgba(255,255,255,.25); padding-top:10px;}
+  .fitrow{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;}
+  .chip{font-size:11.5px; font-weight:700; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.24);
+        border-radius:999px; padding:5px 11px; font-variant-numeric:tabular-nums;}
+  .sec{margin-top:16px;}
+  .kicker{font-size:11px; font-weight:800; letter-spacing:.12em; color:var(--accent); margin-bottom:6px;}
+  .body{font-size:13.5px; color:var(--ink2);}
+  .body b{color:var(--ink);}
+  .chips2{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .cand{flex:1 1 46%; background:#fbfaff; border:1px solid var(--line); border-radius:14px; padding:10px 12px;}
+  .cand .k{font-size:10.5px; color:var(--muted); font-weight:700; letter-spacing:.06em;}
+  .cand .v{font-size:15px; font-weight:800; letter-spacing:.03em;}
+  .cand .p{font-size:11px; color:var(--accent); font-weight:700;}
+
+  .fnrow{display:flex; align-items:center; gap:9px; margin:7px 0; font-size:12.5px;}
+  .fnrow .code2{flex:0 0 30px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .fnrow .lbl{flex:1 1 auto; min-width:0; color:var(--ink2); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .fnrow .track{flex:0 0 40%; height:9px; background:#eeeafa; border-radius:999px; overflow:hidden;}
+  .fnrow .track > i{display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#8b7bff,#6d5efc);}
+  .fnrow .val{flex:0 0 30px; text-align:right; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink2);}
+  .fnrow.top .code2{color:var(--accent);}
+  .fnrow.top .track > i{background:linear-gradient(90deg,#a855f7,#6d5efc);}
+
+  .axrow{margin:11px 0;}
+  .axhead{display:flex; justify-content:space-between; font-size:12px; font-weight:800; margin-bottom:4px; font-variant-numeric:tabular-nums;}
+  .axhead .l{color:var(--accent);}
+  .axhead .r{color:#b07ad0;}
+  .axbar{display:flex; height:10px; border-radius:999px; overflow:hidden; background:#eeeafa;}
+  .axbar i{display:block; height:100%;}
+  .axbar .a{background:linear-gradient(90deg,#6d5efc,#8b7bff);}
+  .axbar .b{background:#e3d9f7;}
+  .axis-label{font-size:11px; color:var(--muted); text-align:center; margin-top:3px;}
+
+  .radar{display:block; width:100%; max-width:330px; margin:6px auto 2px;}
+  .btn-copy{width:100%; border:0; border-radius:14px; padding:15px; font-size:15px; font-weight:800; color:#fff; cursor:pointer;
+            background:linear-gradient(135deg,#4b3ae8,#a855f7); box-shadow:0 10px 22px rgba(109,94,252,.30); margin-top:6px;}
+  .btn-copy:active{transform:scale(.99);}
+  .share-note{font-size:11px; color:var(--muted); text-align:center; margin-top:8px; line-height:1.6;}
+  .warnbox{background:#fffbeb; border:1px solid #fde68a; color:#8a6100; font-size:12px; border-radius:12px; padding:10px 12px; margin-top:10px; line-height:1.6;}
+  .toast{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom)); transform:translate(-50%,20px);
+         background:#1c1b2b; color:#fff; font-size:13px; font-weight:700; padding:11px 18px; border-radius:999px;
+         opacity:0; pointer-events:none; transition:all .22s ease; z-index:60; box-shadow:0 8px 24px rgba(0,0,0,.25);}
+  .toast.show{opacity:1; transform:translate(-50%,0);}
+  footer{margin-top:22px; text-align:center; font-size:10.5px; color:#a7a3bd; line-height:1.8;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <div class="brand">🧠 <b>MBTI</b> 精密診断</div>
+    <div class="bar-right" id="barRight"></div>
+  </header>
+
+  <!-- ===== intro ===== -->
+  <section id="screen-intro" class="screen">
+    <div class="card">
+      <span class="pill">64問・心理機能グラフつき</span>
+      <h1>サイトによって結果が変わる<br>MBTIに、終止符を。</h1>
+      <p class="lead">ユングの8つの心理機能（Ti・Te・Fi・Fe・Ni・Ne・Si・Se）を各6問・計48問で測り、4つの基本軸とA/Tを16問で確認。64問から、あなたの「思考のクセ」を立体的に描き出します。</p>
+      <ul class="facts">
+        <li><span class="ico">🎯</span><span><b>8つの心理機能を精密測定</b><br>主機能〜劣等機能の並び（心理機能スタック）と照合します。</span></li>
+        <li><span class="ico">⏱️</span><span><b>64問・約7〜9分</b><br>1問ずつ自動で進み、戻るボタンで見直せます。</span></li>
+        <li><span class="ico">💾</span><span><b>途中保存つき</b><br>途中で閉じても、同じ端末なら続きから再開できます。</span></li>
+        <li><span class="ico">📊</span><span><b>結果はグラフとコピーで</b><br>心理機能レーダー・4軸％・第2／第3候補まで表示。</span></li>
+      </ul>
+      <button class="start" id="btnStart">診断をはじめる</button>
+      <button class="ghost hidden" id="btnResume">続きから再開する</button>
+      <p class="tiny" style="margin-top:14px;">直感で、深く考えすぎずに選ぶほうが精度が上がります。MBTIは自己理解のための目安であり、医学的な診断ではありません。</p>
+    </div>
+  </section>
+
+  <!-- ===== quiz ===== -->
+  <section id="screen-quiz" class="screen hidden">
+    <div class="progress"><i id="progBar"></i></div>
+    <div class="qmeta">
+      <span><span class="cur" id="qnum">1</span> / 64</span>
+      <span id="qstep">ステップ 1 / 8</span>
+    </div>
+    <div class="card qcard">
+      <div class="qtext" id="qtext">…</div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="qfoot">
+      <button id="btnBack">← 戻る</button>
+      <button id="btnQuit">中断</button>
+    </div>
+    <p class="hint">キーボードの 1〜5 でも回答できます</p>
+  </section>
+
+  <!-- ===== result ===== -->
+  <section id="screen-result" class="screen hidden">
+    <div id="resultBody"></div>
+    <button class="start" id="btnAgain" style="margin-top:14px;">もう一度診断する</button>
+  </section>
+
+  <footer>
+    MBTI 精密診断 ・ 64問 / 8心理機能 + 4軸 + A・T<br>
+    結果は自己理解の参考としてお楽しみください。
+  </footer>
+</div>
+<div class="toast" id="toast">コピーしました</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- error log（動作確認用・画面には出ない） ---------- */
+  window.__errors = [];
+  window.addEventListener("error", function(e){ window.__errors.push(String(e.message)); });
+
+  /* ---------- 心理機能の定義 ---------- */
+  var FUNCS = ["Ti","Te","Fi","Fe","Ni","Ne","Si","Se"];
+  var FN_INFO = {
+    Ti:{jp:"内的思考", short:"筋道を組み立てる", desc:"自分の頭の中で論理の整合性を確かめる"},
+    Te:{jp:"外的思考", short:"段取りを回す", desc:"外の世界を効率よく組織して前に進める"},
+    Fi:{jp:"内的感情", short:"自分の価値観", desc:"内側の善し悪し・好き嫌いで選ぶ"},
+    Fe:{jp:"外的感情", short:"場の調和", desc:"周りの気持ちを読み、場を整える"},
+    Ni:{jp:"内的直観", short:"先を見通す", desc:"情報をひとつの像に収束させる"},
+    Ne:{jp:"外的直観", short:"可能性を広げる", desc:"外の世界から新しい可能性を拾う"},
+    Si:{jp:"内的感覚", short:"経験を蓄える", desc:"過去の経験と体感を基準にする"},
+    Se:{jp:"外的感覚", short:"今を感じ取る", desc:"今この瞬間の現実をダイレクトに捉える"}
+  };
+  var FLIP = {Ti:"Te",Te:"Ti",Fi:"Fe",Fe:"Fi",Ni:"Ne",Ne:"Ni",Si:"Se",Se:"Si"};
+
+  /* ---------- 16タイプ ---------- */
+  var TYPES = {
+    INTJ:{name:"建築家", catch:"ひとりで描いた設計図を、静かに現実にする人。",
+      style:"目先の情報を遠くの目標につなげ、最短ルートを頭の中で組み立てます。納得できない結論は受け入れず、自分の理論が一貫しているかを見張り続けるタイプです。",
+      strengths:["長期の見通しと構想力","複雑な問題の構造化","一度決めたらぶれない集中力"],
+      pitfall:"説明を省きがちで、周りには急に結論だけが見えます。人の気持ちの機微を後回しにして、正しさで押し切ってしまうことがあります。",
+      env:"自分で設計できる裁量と、邪魔されない集中時間がある仕事。理想を語り合える少数の相手。"},
+    INTP:{name:"論理学者", catch:"「なぜ？」を追いかけ続ける、頭の中の実験室。",
+      style:"概念を分解して整合性を確かめ、あらゆる可能性を頭の中で試します。結論を急ぐより「より正確な理解」に価値を置くタイプです。",
+      strengths:["独創的な発想","矛盾を見抜く力","複雑な理論を噛み砕く思考"],
+      pitfall:"考え続けて実行が遅れがち。頭の中で結論が出た気になって、共有するのを忘れてしまいます。",
+      env:"探究の時間が確保され、細かいルールに縛られない場。知的な刺激をくれる相手。"},
+    ENTJ:{name:"指揮官", catch:"ゴールを掲げ、最短距離で人を動かす。",
+      style:"目標から逆算して段取りを組み、人と資源を配置します。曖昧さを残さず、決めたらすぐ動くタイプです。",
+      strengths:["決断と実行の速さ","全体を動かす構想力","困難でも前へ進む胆力"],
+      pitfall:"速度についていけない人の気持ちを置き去りにしがち。正しさを優先して、言葉が強くなりすぎることがあります。",
+      env:"裁量と責任が大きく、成果で評価される場。高い目標をともに掲げられる仲間。"},
+    ENTP:{name:"討論者", catch:"常識に穴をあけ、選択肢を増やしていく。",
+      style:"前提を疑い、別の可能性を次々に提示します。議論をしながら考えを練り上げていくタイプです。",
+      strengths:["応用力と切り替えの速さ","人を巻き込む説得力","新しい企画を立ち上げる力"],
+      pitfall:"興味が移りやすく、仕上げの段階で力尽きることがあります。刺激を求めて波風を立てがちです。",
+      env:"変化が多く、新しい企画を試せる場。雑談からアイデアが生まれるチーム。"},
+    INFJ:{name:"提唱者", catch:"人の心の奥を見つめ、静かに道筋を示す。",
+      style:"言葉の裏にある気持ちや物事の行く末を、直感的につかみます。理想と現実の両方を見て、意味のある一歩を探すタイプです。",
+      strengths:["深い共感と洞察","人を成長させる関わり","信念の一貫性"],
+      pitfall:"抱え込みやすく、疲れていても「大丈夫」と言ってしまいます。理想と現実の差に傷つきやすい面があります。",
+      env:"人の役に立っている実感がある仕事。ひとりで考える時間と、少数の深い関係。"},
+    INFP:{name:"仲介者", catch:"内側の価値観を、静かに守り育てる。",
+      style:"何より「自分にとって大切か」を基準に選びます。人の痛みに敏感で、想像の中で世界を広げるタイプです。",
+      strengths:["揺るがない価値観","豊かな想像力","相手をそのまま受け止める力"],
+      pitfall:"現実の段取りを後回しにしがち。傷つくと、なかなか外に出られなくなります。",
+      env:"自分のペースと意味を大事にできる場。押しつけが少なく、表現を認められる環境。"},
+    ENFJ:{name:"主人公", catch:"みんなの可能性を信じ、背中を押す人。",
+      style:"場の空気と人の気持ちを読み、全体が良くなる方向へ自然に導きます。人の成長を自分の喜びとして受け取るタイプです。",
+      strengths:["人を動かす温かさ","関係づくりのうまさ","場をまとめる調整力"],
+      pitfall:"期待に応えようとして自分を後回しにしがち。相手のためと思った関わりが、重荷になることもあります。",
+      env:"人と関わりながら成果を出す仕事。感謝や反応が返ってくる場。"},
+    ENFP:{name:"広報運動家", catch:"好奇心のままに、人と世界をつないでいく。",
+      style:"目の前の出来事から可能性を広げ、人との縁を大切にします。気持ちの動きを大事にしながら、勢いで動くタイプです。",
+      strengths:["人を惹きつける明るさ","新しいことを始める力","相手の良いところを見つける目"],
+      pitfall:"気分の波が大きく、集中が途切れやすい。面白さを優先して、約束が曖昧になることがあります。",
+      env:"人と会い、変化のある仕事。自由と刺激があり、気持ちを表現できる場。"},
+    ISTJ:{name:"管理者", catch:"決めたことを、静かに最後までやり切る。",
+      style:"経験と事実を積み上げ、確実な手順で進めます。責任を引き受け、約束を守ることで信頼を築くタイプです。",
+      strengths:["正確さと安定感","責任感の強さ","経験を活かす実務力"],
+      pitfall:"変化への適応に時間がかかります。正しさを大事にするあまり、柔軟さを欠くように見えることがあります。",
+      env:"役割と手順が明確で、長期にわたって信頼を積める場。静かに集中できる環境。"},
+    ISFJ:{name:"擁護者", catch:"気づかれないところで、誰かを支えている。",
+      style:"相手の好みや過去の経緯をよく覚えていて、先回りして気を配ります。派手さより、確実な安心をつくるタイプです。",
+      strengths:["細やかな気配り","責任を果たす誠実さ","人と経緯を覚えている記憶力"],
+      pitfall:"頼まれると断れず、抱え込みやすい。変化や対立を避けて、我慢してしまうことがあります。",
+      env:"人の役に立つ実感があり、顔が見える関係の場。感謝が言葉で返ってくる環境。"},
+    ESTJ:{name:"幹部", catch:"決めて、任せて、回す。現場を止めない人。",
+      style:"事実と基準で物事を整理し、役割と手順を決めて回します。曖昧なままより、決まっている状態を好むタイプです。",
+      strengths:["組織を動かす実行力","判断の速さ","責任ある立場での安定感"],
+      pitfall:"効率を優先して、気持ちの面を置いてけぼりにしがち。自分の基準を人に押しつけることがあります。",
+      env:"目標と役割がはっきりした組織。成果が目に見え、任される範囲が広い場。"},
+    ESFJ:{name:"領事", catch:"場をあたため、みんなが居心地よくいられるように。",
+      style:"人の気持ちと場の和を最優先に、細やかに動きます。習慣や行事を大切にし、関係を育てるタイプです。",
+      strengths:["場を明るくする気配り","人をつなぐ力","面倒を厭わない献身"],
+      pitfall:"評価や反応がないと不安になりやすい。和を守るために本音を飲み込むことがあります。",
+      env:"人と接する時間が多く、感謝が返ってくる場。チームで協力する仕事。"},
+    ISTP:{name:"巨匠", catch:"まず触れて、仕組みを理解する実践派。",
+      style:"理屈は実際に動かして確かめます。無駄を削ぎ、必要なときに必要な手を打つタイプです。",
+      strengths:["手を動かして解決する力","トラブル対応の冷静さ","無駄のない動き"],
+      pitfall:"説明を省き、考えていることを共有しないことが多い。長期の計画づくりは後回しになりがちです。",
+      env:"自分の裁量で手を動かせる現場。細かい会議より、実務と結果が中心の場。"},
+    ISFP:{name:"冒険家", catch:"今この瞬間の感覚を、自分らしく生きる。",
+      style:"目の前の美しさや気持ちの動きに素直に反応します。押しつけず、静かに自分の道を選ぶタイプです。",
+      strengths:["繊細な感受性","場の空気を和らげる優しさ","手仕事や表現のセンス"],
+      pitfall:"先の見通しを立てるのが苦手。対立を避けて、言いたいことを飲み込むことがあります。",
+      env:"自由度が高く、自分の感性を活かせる場。急かされず、自分のペースで進められる環境。"},
+    ESTP:{name:"起業家", catch:"考えるより先に、場に飛び込んでいく。",
+      style:"今の状況を瞬時に読み、その場で最善手を打ちます。実体験から学び、スピードで勝負するタイプです。",
+      strengths:["瞬発力と行動力","交渉や駆け引きのうまさ","危機でも動じない度胸"],
+      pitfall:"先のリスクを見落としがち。刺激を求めて、詰めが甘くなることがあります。",
+      env:"変化が速く、結果がすぐ出る場。体を動かし、人と交渉する仕事。"},
+    ESFP:{name:"エンターテイナー", catch:"その場を明るくして、今を楽しませる。",
+      style:"五感で受け取ったものをそのまま表現し、周りと共有します。人の反応を見ながら場を盛り上げるタイプです。",
+      strengths:["場を明るくする力","人懐っこさ","今を楽しむ行動力"],
+      pitfall:"計画や締切の管理が苦手。感情のまま動いて、あとで慌てることがあります。",
+      env:"人と接し、反応がすぐ返ってくる場。楽しく自由に動ける仕事。"}
+  };
+
+  /* 心理機能スタック（主機能・補助機能・代替機能・劣等機能） */
+  var STACKS = {
+    INTJ:["Ni","Te","Fi","Se"], INTP:["Ti","Ne","Si","Fe"],
+    ENTJ:["Te","Ni","Se","Fi"], ENTP:["Ne","Ti","Fe","Si"],
+    INFJ:["Ni","Fe","Ti","Se"], INFP:["Fi","Ne","Si","Te"],
+    ENFJ:["Fe","Ni","Se","Ti"], ENFP:["Ne","Fi","Te","Si"],
+    ISTJ:["Si","Te","Fi","Ne"], ISFJ:["Si","Fe","Ti","Ne"],
+    ESTJ:["Te","Si","Ne","Fi"], ESFJ:["Fe","Si","Ne","Ti"],
+    ISTP:["Ti","Se","Ni","Fe"], ISFP:["Fi","Se","Ni","Te"],
+    ESTP:["Se","Ti","Fe","Ni"], ESFP:["Se","Fi","Te","Ni"]
+  };
+
+  /* ---------- 質問（心理機能 8×6=48） ---------- */
+  var FQ = {
+    Ti:[
+      {t:"納得できない説明は、相手が専門家でも、自分の中で腑に落ちるまで受け入れない。"},
+      {t:"問題が起きたとき、まず「どこに矛盾があるか」を自分の頭で整理したくなる。"},
+      {t:"言葉の意味があいまいなまま話が進むと、先に定義を決めたくなる。"},
+      {t:"決まった手順でも、もっと理にかなった方法がないか考えてしまう。"},
+      {t:"細かい理屈より、周りが決めたやり方に合わせるほうが楽だ。", r:true},
+      {t:"なぜそうなるのかを考えるより、結果さえ合っていればいいと思うことが多い。", r:true}
+    ],
+    Te:[
+      {t:"目標が決まったら、まず段取りを組み立てて動き出す。"},
+      {t:"話し合いが長引くと、結論と担当を決めて前に進めたくなる。"},
+      {t:"成果は、できるだけ数字や事実で示せる形にしたい。"},
+      {t:"無駄な作業や非効率なやり方を見ると、改善したくてたまらなくなる。"},
+      {t:"計画を立てるより、その場の流れに任せて動くほうが性に合っている。", r:true},
+      {t:"優先順位をつけるのは苦手で、思いついた順に手をつけてしまう。", r:true}
+    ],
+    Fi:[
+      {t:"自分が「これは大事だ」と感じる価値観に反することは、得になってもしたくない。"},
+      {t:"好き嫌いや善し悪しは、周りの意見より自分の内側の感覚で決めることが多い。"},
+      {t:"自分の気持ちに正直でいることを、何より大切にしている。"},
+      {t:"口には出さないけれど、心の中で譲れない信念を持っている。"},
+      {t:"自分の気持ちより、周りからどう見られるかのほうが気になる。", r:true},
+      {t:"自分の価値観より、その場に合わせて判断を変えるほうが自然だ。", r:true}
+    ],
+    Fe:[
+      {t:"その場の空気を読み、みんなが気持ちよく過ごせるように動くことが多い。"},
+      {t:"相手がどう感じているかを、表情や声の調子から自然に察する。"},
+      {t:"誰かが困っていると、放っておけずに声をかけたくなる。"},
+      {t:"意見が対立したときは、まず関係が壊れないように調整しようとする。"},
+      {t:"場の空気より、自分の考えを通すほうが大事だと思うことが多い。", r:true},
+      {t:"人からどう思われるかは、あまり気にしないほうだ。", r:true}
+    ],
+    Ni:[
+      {t:"目の前の出来事から「この先どうなりそうか」が、なんとなく見えてくる。"},
+      {t:"ばらばらの情報を頭の中でまとめると、ひとつの結論に収束していく感覚がある。"},
+      {t:"何かを決めるとき、理屈より「これが正しい方向だ」という確信に従うことが多い。"},
+      {t:"将来こうなっていたいという像を描き、そこから逆算して考えるのが好きだ。"},
+      {t:"先を見通すより、目の前のことを確実にこなすほうが大事だ。", r:true},
+      {t:"ひらめきより、集めたデータを一つずつ積み上げるほうが信用できる。", r:true}
+    ],
+    Ne:[
+      {t:"ひとつの話から、別のアイデアが次々に浮かんでくる。"},
+      {t:"「もしこうだったら」と可能性を広げて考えるのが楽しい。"},
+      {t:"新しいものや珍しいものを見つけると、すぐ試したくなる。"},
+      {t:"話が脱線しても、思わぬところで面白い発想につながることが多い。"},
+      {t:"決まったやり方を変えずに続けるほうが、安心して集中できる。", r:true},
+      {t:"選択肢をあれこれ広げるより、ひとつに絞って深く考えるほうが好きだ。", r:true}
+    ],
+    Si:[
+      {t:"何かを見たり聞いたりすると、「前はこうだった」と過去と比べることが多い。"},
+      {t:"体で覚えた手順や癖は、意識しなくても自然に再現できる。"},
+      {t:"慣れた環境やいつものやり方が、いちばん落ち着く。"},
+      {t:"過去にうまくいった方法を、メモのように覚えていて使い回す。"},
+      {t:"決まったやり方を繰り返すより、新しいやり方を試すほうが楽しい。", r:true},
+      {t:"細かい変化や違いには、あまり気づかないほうだ。", r:true}
+    ],
+    Se:[
+      {t:"目の前の変化にすぐ気づき、とっさに体が反応する。"},
+      {t:"考え込むより、まず動いて実際に体感したほうが早いと思う。"},
+      {t:"食事や音、景色など、五感で受け取る刺激をそのまま楽しめる。"},
+      {t:"その場の空気や状況を見て、その場で判断を変えることが多い。"},
+      {t:"目の前のことより、頭の中で考えていることが多い。", r:true},
+      {t:"体を動かすより、じっくり座って考えるほうが落ち着く。", r:true}
+    ]
+  };
+
+  /* ---------- 質問（4軸 + A/T = 16） ---------- */
+  var AQ = {
+    EI:[
+      {p:"E", t:"人と話しているうちに考えが整理され、元気が出てくる。"},
+      {p:"E", t:"初対面の人と話すのは、基本的に楽しい。"},
+      {p:"I", t:"大人数の場にいると、だんだん疲れてくる。"}
+    ],
+    SN:[
+      {p:"S", t:"説明を聞くと、まず具体例や実際の話が知りたくなる。"},
+      {p:"S", t:"話をするときは、事実や経験したことを中心に話すことが多い。"},
+      {p:"N", t:"話が比喩やイメージに広がっていくことが多い。"}
+    ],
+    TF:[
+      {p:"T", t:"相談されると、まず解決策を整理して伝えたくなる。"},
+      {p:"T", t:"判断するときは、感情を抜きにして正しいかどうかで決めたい。"},
+      {p:"F", t:"正しいことでも、相手が傷つくなら言い方を変える。"}
+    ],
+    JP:[
+      {p:"J", t:"予定は早めに決めておかないと落ち着かない。"},
+      {p:"J", t:"決めた予定は、できるようにその通りに進めたい。"},
+      {p:"P", t:"旅行は、行き先だけ決めてあとは現地で決めるのが好き。"}
+    ],
+    AT:[
+      {p:"A", t:"失敗しても「次は大丈夫」と気持ちを切り替えるのが早い。"},
+      {p:"A", t:"自分の選択に、あまり迷わないほうだ。"},
+      {p:"T", t:"自分の失敗を、しばらく何度も思い返してしまう。"},
+      {p:"T", t:"周りの評価が気になって、気分が左右されやすい。"}
+    ]
+  };
+
+  var DIMS = [
+    {key:"EI", a:"E", b:"I", label:"エネルギー"},
+    {key:"SN", a:"S", b:"N", label:"情報の受け取り"},
+    {key:"TF", a:"T", b:"F", label:"判断のしかた"},
+    {key:"JP", a:"J", b:"P", label:"外界への接し方"}
+  ];
+
+  /* ---------- 出題順をつくる（8問×8ステップ、心理機能6問＋軸2問） ---------- */
+  function buildQuestions(){
+    var funcPool = [];
+    for (var r=0; r<6; r++){
+      for (var i=0;i<FUNCS.length;i++){
+        var f = FUNCS[i], item = FQ[f][r];
+        funcPool.push({kind:"f", f:f, t:item.t, rev:!!item.r});
+      }
+    }
+    var axisPool = [];
+    var dimOrder = ["EI","SN","TF","JP","AT"];
+    for (var n=0; n<4; n++){
+      for (var d=0; d<dimOrder.length; d++){
+        var k = dimOrder[d], it = AQ[k][n];
+        if (it) axisPool.push({kind:"a", dim:k, pole:it.p, t:it.t, rev:false});
+      }
+    }
+    var out = [], fi = 0, ai = 0;
+    for (var b=0; b<8; b++){
+      for (var s=0; s<6; s++){ out.push(funcPool[fi++]); }
+      for (var s2=0; s2<2; s2++){ out.push(axisPool[ai++]); }
+    }
+    return out.filter(Boolean).slice(0,64);
+  }
+
+  var QS = buildQuestions();
+  var TOTAL = QS.length;
+
+  /* ---------- 状態・保存 ---------- */
+  var LS_ANS = "mbtiPro.v1.answers";
+  var LS_IDX = "mbtiPro.v1.idx";
+  var state = { answers:new Array(TOTAL).fill(null), idx:0 };
+
+  function storageGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function storageSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function storageDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+  function save(){
+    storageSet(LS_ANS, JSON.stringify(state.answers));
+    storageSet(LS_IDX, String(state.idx));
+  }
+  function loadSaved(){
+    var raw = storageGet(LS_ANS);
+    if (!raw) return null;
+    try{
+      var arr = JSON.parse(raw);
+      if (!Array.isArray(arr) || arr.length !== TOTAL) return null;
+      var cnt = arr.filter(function(v){ return typeof v === "number"; }).length;
+      if (cnt === 0) return null;
+      var idx = parseInt(storageGet(LS_IDX) || "0", 10);
+      if (!(idx >= 0 && idx < TOTAL)) idx = 0;
+      return {answers:arr, idx:idx, count:cnt};
+    }catch(e){ return null; }
+  }
+
+  /* ---------- DOM ---------- */
+  var $ = function(id){ return document.getElementById(id); };
+  var screens = { intro:$("screen-intro"), quiz:$("screen-quiz"), result:$("screen-result") };
+  var barRight = $("barRight");
+
+  function show(name){
+    Object.keys(screens).forEach(function(k){ screens[k].classList.toggle("hidden", k !== name); });
+    window.scrollTo(0,0);
+    barRight.textContent = name === "quiz" ? "回答中" : (name === "result" ? "結果" : "");
+  }
+
+  function toast(msg){
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ t.classList.remove("show"); }, 1900);
+  }
+
+  /* ---------- intro ---------- */
+  var saved = loadSaved();
+  if (saved && saved.count > 0){
+    $("btnResume").classList.remove("hidden");
+    $("btnResume").textContent = "続きから再開する（" + saved.count + " / " + TOTAL + " 回答済み）";
+    $("btnStart").textContent = "はじめから診断する";
+  }
+
+  $("btnStart").addEventListener("click", function(){
+    state.answers = new Array(TOTAL).fill(null);
+    state.idx = 0;
+    save();
+    startQuiz();
+  });
+  $("btnResume").addEventListener("click", function(){
+    var s = loadSaved();
+    if (s){
+      state.answers = s.answers;
+      state.idx = s.count >= TOTAL ? TOTAL-1 : s.idx;
+      // 最初の未回答へ
+      var firstUn = state.answers.indexOf(null);
+      state.idx = firstUn === -1 ? TOTAL-1 : firstUn;
+    }
+    startQuiz();
+  });
+
+  function startQuiz(){
+    show("quiz");
+    renderQ();
+  }
+
+  /* ---------- 質問の描画 ---------- */
+  var OPT_LABELS = ["全く当てはまらない","あまり当てはまらない","どちらでもない","やや当てはまる","非常に当てはまる"];
+  var optsEl = $("opts"), qtextEl = $("qtext"), qnumEl = $("qnum"), qstepEl = $("qstep"), progEl = $("progBar");
+
+  function renderQ(){
+    var i = state.idx, q = QS[i];
+    qtextEl.textContent = q.t;
+    qnumEl.textContent = String(i+1);
+    qstepEl.textContent = "ステップ " + (Math.floor(i/8)+1) + " / 8";
+    var done = state.answers.filter(function(v){ return typeof v === "number"; }).length;
+    progEl.style.width = Math.round((done / TOTAL) * 100) + "%";
+    optsEl.innerHTML = "";
+    for (var v=1; v<=5; v++){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt";
+      b.setAttribute("data-v", String(v));
+      b.setAttribute("aria-label", OPT_LABELS[v-1]);
+      b.innerHTML = '<span class="dot">' + v + '</span><span>' + OPT_LABELS[v-1] + '</span>';
+      if (state.answers[i] === v) b.classList.add("on");
+      b.addEventListener("click", (function(val){ return function(){ answer(val); }; })(v));
+      optsEl.appendChild(b);
+    }
+    $("btnBack").disabled = i === 0;
+  }
+
+  var advanceTimer = null;
+  function answer(v){
+    state.answers[state.idx] = v;
+    save();
+    var nodes = optsEl.querySelectorAll(".opt");
+    for (var i=0;i<nodes.length;i++) nodes[i].classList.toggle("on", Number(nodes[i].getAttribute("data-v")) === v);
+    try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    if (state.idx >= TOTAL-1){ finish(); return; }
+    clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(function(){
+      state.idx++;
+      save();
+      renderQ();
+    }, 180);
+  }
+
+  function next(){
+    if (state.idx < TOTAL-1){ state.idx++; save(); renderQ(); }
+  }
+
+  $("btnBack").addEventListener("click", function(){
+    if (state.idx > 0){ state.idx--; save(); renderQ(); }
+  });
+  $("btnQuit").addEventListener("click", function(){
+    save();
+    var cnt = state.answers.filter(function(v){ return typeof v === "number"; }).length;
+    $("btnResume").classList.remove("hidden");
+    $("btnResume").textContent = "続きから再開する（" + cnt + " / " + TOTAL + " 回答済み）";
+    $("btnStart").textContent = "はじめから診断する";
+    show("intro");
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (screens.quiz.classList.contains("hidden")) return;
+    if (e.key >= "1" && e.key <= "5"){ e.preventDefault(); clearTimeout(advanceTimer); answer(Number(e.key)); }
+    else if (e.key === "ArrowLeft" || e.key === "Backspace"){
+      if (state.idx > 0){ e.preventDefault(); state.idx--; save(); renderQ(); }
+    }
+  });
+
+  /* ---------- 判定 ---------- */
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  function analyze(answers){
+    // 心理機能（各6問・リバース処理、6〜30点 → 0〜100%）
+    var fs = {};
+    FUNCS.forEach(function(f){
+      var items = [];
+      for (var i=0;i<TOTAL;i++) if (QS[i].kind === "f" && QS[i].f === f) items.push(i);
+      var sum = 0;
+      items.forEach(function(i){
+        var raw = answers[i] == null ? 3 : answers[i];
+        sum += QS[i].rev ? (6 - raw) : raw;
+      });
+      fs[f] = clamp(((sum - items.length) / (items.length * 4)) * 100, 0, 100);
+    });
+
+    // 4軸 + A/T
+    var ax = {};
+    DIMS.forEach(function(d){
+      var pa = [], pb = [];
+      for (var i=0;i<TOTAL;i++){
+        var q = QS[i];
+        if (q.kind !== "a" || q.dim !== d.key) continue;
+        (q.pole === d.a ? pa : pb).push(answers[i] == null ? 3 : answers[i]);
+      }
+      var ma = pa.reduce(function(s,v){return s+v;},0) / Math.max(1,pa.length);
+      var mb = pb.reduce(function(s,v){return s+v;},0) / Math.max(1,pb.length);
+      var pctA = (ma + mb) === 0 ? 50 : (ma / (ma + mb)) * 100;
+      ax[d.key] = { aPct:pctA, bPct:100-pctA };
+    });
+    var atItems = [];
+    for (var i2=0;i2<TOTAL;i2++) if (QS[i2].kind === "a" && QS[i2].dim === "AT") atItems.push(i2);
+    var aSum = atItems.reduce(function(s,i){
+      var v = answers[i] == null ? 3 : answers[i];
+      return s + (QS[i].pole === "T" ? (6 - v) : v);   // 高いほど「自己主張型(A)」
+    }, 0);
+    var aPct = clamp(((aSum - atItems.length) / (atItems.length * 4)) * 100, 0, 100);
+
+    // タイプ適合度
+    var vals = FUNCS.map(function(f){ return fs[f]; });
+    var sorted = vals.slice().sort(function(x,y){ return y-x; });
+    var rankOf = function(f){ return sorted.indexOf(fs[f]); };
+    var W = [4,3,2,1];
+
+    var scored = Object.keys(STACKS).map(function(type){
+      var st = STACKS[type];
+      var fFit = 0, wsum = 0;
+      for (var k=0;k<4;k++){ fFit += W[k] * fs[st[k]]; wsum += W[k]; }
+      fFit = fFit / wsum;
+
+      // 影の機能との整合性：同じ機能の反対態度より、表の態度が優勢か
+      var shadowPenalty = 0, sw = 0;
+      for (var m=0;m<4;m++){
+        var sh = FLIP[st[m]];
+        var diff = Math.max(0, fs[sh] - fs[st[m]]);
+        shadowPenalty += W[m] * diff; sw += W[m];
+      }
+      shadowPenalty = shadowPenalty / sw;
+      var shadowFit = clamp(100 - shadowPenalty, 0, 100);
+
+      // 4軸の一致
+      var letters = type.split("");
+      var aFit = 0;
+      for (var n=0;n<4;n++){
+        var d = DIMS[n];
+        var pct = ax[d.key].aPct;
+        aFit += (letters[n] === d.a) ? pct : (100 - pct);
+      }
+      aFit = aFit / 4;
+
+      var bonus = [5,3.5,2,0.5,0,0,0,0][rankOf(st[0])] || 0;
+
+      var total = 0.56 * fFit + 0.30 * aFit + 0.14 * shadowFit + bonus;
+      return {
+        type:type, name:TYPES[type].name,
+        total:clamp(total, 0, 99.4),
+        fFit:fFit, aFit:aFit, shadowFit:shadowFit, bonus:bonus
+      };
+    }).sort(function(p,q){ return q.total - p.total; });
+
+    // 4軸から見た傾向タイプ（整合性チェック用）
+    var axisLetters = DIMS.map(function(d){ return ax[d.key].aPct >= 50 ? d.a : d.b; }).join("");
+    var mism = 0;
+    for (var mm=0; mm<4; mm++) if (axisLetters[mm] !== scored[0].type[mm]) mism++;
+
+    var straight = (function(){
+      var c = {};
+      answers.forEach(function(v){ if (v!=null) c[v]=(c[v]||0)+1; });
+      var top = 0; Object.keys(c).forEach(function(k){ if (c[k]>top) top=c[k]; });
+      return top / TOTAL;
+    })();
+
+    return {
+      type: scored[0].type, at: aPct, aPct:aPct,
+      top3: scored.slice(0,3),
+      fs: fs, ax: ax, axisLetters: axisLetters, mismatch: mism, straight: straight
+    };
+  }
+
+  function atLabel(p){ return p >= 50 ? "A" : "T"; }
+  function atName(p){ return p >= 50 ? "自己主張型" : "慎重型"; }
+
+  /* ---------- 結果画面 ---------- */
+  function finish(){
+    show("result");
+    var res = analyze(state.answers);
+    renderResult(res);
+    $("resultBody").scrollIntoView({block:"start"});
+  }
+
+  function radarSVG(fs){
+    var order = ["Ti","Ni","Te","Ne","Fe","Se","Fi","Si"];
+    var size = 320, cx = size/2, cy = size/2 + 4, R = 104;
+    var pts = function(scale){
+      return order.map(function(f,i){
+        var ang = (-90 + i*45) * Math.PI/180;
+        var r = R * scale;
+        return (cx + r*Math.cos(ang)).toFixed(1) + "," + (cy + r*Math.sin(ang)).toFixed(1);
+      }).join(" ");
+    };
+    var grid = [0.25,0.5,0.75,1].map(function(s){
+      return '<polygon points="'+pts(s)+'" fill="none" stroke="#e4ddfa" stroke-width="1"/>';
+    }).join("");
+    var spokes = order.map(function(f,i){
+      var ang = (-90 + i*45) * Math.PI/180;
+      return '<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+R*Math.cos(ang)).toFixed(1)+'" y2="'+(cy+R*Math.sin(ang)).toFixed(1)+'" stroke="#eee9fc" stroke-width="1"/>';
+    }).join("");
+    var shape = order.map(function(f,i){
+      var ang = (-90 + i*45) * Math.PI/180;
+      var r = R * (clamp(fs[f],0,100)/100);
+      return (cx + r*Math.cos(ang)).toFixed(1) + "," + (cy + r*Math.sin(ang)).toFixed(1);
+    }).join(" ");
+    var dots = order.map(function(f,i){
+      var ang = (-90 + i*45) * Math.PI/180;
+      var r = R * (clamp(fs[f],0,100)/100);
+      return '<circle cx="'+(cx+r*Math.cos(ang)).toFixed(1)+'" cy="'+(cy+r*Math.sin(ang)).toFixed(1)+'" r="3" fill="#6d5efc"/>';
+    }).join("");
+    var labels = order.map(function(f,i){
+      var ang = (-90 + i*45) * Math.PI/180;
+      var lr = R + 21;
+      var x = cx + lr*Math.cos(ang), y = cy + lr*Math.sin(ang) + 4;
+      var anchor = Math.abs(Math.cos(ang)) < 0.2 ? "middle" : (Math.cos(ang) > 0 ? "start" : "end");
+      return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" text-anchor="'+anchor+'" font-size="12" font-weight="700" fill="#4b3ae8">'+f+'</text>';
+    }).join("");
+    return '<svg class="radar" viewBox="0 0 '+size+' '+size+'" role="img" aria-label="8つの心理機能のレーダーチャート">'+
+      grid + spokes +
+      '<polygon points="'+shape+'" fill="rgba(109,94,252,.20)" stroke="#6d5efc" stroke-width="2" stroke-linejoin="round"/>'+
+      dots + labels + '</svg>';
+  }
+
+  function fnBars(fs){
+    var list = FUNCS.slice().sort(function(a,b){ return fs[b]-fs[a]; });
+    var top2 = list.slice(0,2);
+    return list.map(function(f){
+      var v = Math.round(fs[f]);
+      return '<div class="fnrow'+(top2.indexOf(f)>=0?" top":"")+'">'+
+        '<span class="code2">'+f+'</span>'+
+        '<span class="lbl">'+FN_INFO[f].jp+'・'+FN_INFO[f].short+'</span>'+
+        '<span class="track"><i style="width:'+v+'%"></i></span>'+
+        '<span class="val">'+v+'</span></div>';
+    }).join("");
+  }
+
+  function axBars(ax){
+    return DIMS.map(function(d){
+      var A = Math.round(ax[d.key].aPct), B = 100-A;
+      return '<div class="axrow">'+
+        '<div class="axhead"><span class="l">'+d.a+' '+A+'%</span><span class="r">'+B+'% '+d.b+'</span></div>'+
+        '<div class="axbar"><i class="a" style="width:'+A+'%"></i><i class="b" style="width:'+B+'%"></i></div>'+
+        '<div class="axis-label">'+d.label+'</div></div>';
+    }).join("");
+  }
+
+  function renderResult(res){
+    var t = res.type, info = TYPES[t];
+    var atL = atLabel(res.aPct);
+    var pA = Math.round(res.aPct), pT = 100 - pA;
+    var top = res.top3[0];
+    var fit = Math.round(top.total*10)/10;
+
+    var html = "";
+    html += '<div class="hero">'+
+      '<div class="tag">あなたのタイプ</div>'+
+      '<div class="code">'+t+'<small>-'+atL+'</small></div>'+
+      '<div class="tname">'+info.name+'（'+atName(res.aPct)+'）</div>'+
+      '<div class="catch">'+info.catch+'</div>'+
+      '<div class="fitrow">'+
+        '<span class="chip">適合度 '+fit+'%</span>'+
+        '<span class="chip">'+atL+'（'+pA+'%）</span>'+
+        '<span class="chip">64問・心理機能診断</span>'+
+      '</div>'+
+    '</div>';
+
+    html += '<div class="card sec">'+
+      '<div class="kicker">第2・第3候補</div>'+
+      '<div class="chips2">'+ res.top3.slice(1).map(function(c,i){
+        return '<div class="cand"><div class="k">第'+(i+2)+'候補</div>'+
+               '<div class="v">'+c.type+'-'+atL+'</div>'+
+               '<div class="p">'+c.name+'・適合度 '+ (Math.round(c.total*10)/10) +'%</div></div>';
+      }).join("") + '</div>'+
+      '<p class="tiny" style="margin-top:10px;">上位が接戦のときは、両方のタイプの特徴を併せ持っている可能性があります。心理機能の並びが近いタイプは、環境によって顔の出方が変わります。</p>'+
+    '</div>';
+
+    if (res.mismatch >= 2){
+      html += '<div class="card sec"><div class="kicker">ひとこと補足</div>'+
+        '<p class="body">4軸の質問だけを見ると <b>'+res.axisLetters+'</b> 寄りですが、8つの心理機能のバランスを総合すると <b>'+t+'</b> が最も近い形です。心理機能は「どの機能を主に使っているか」を、4軸は「外向きか内向きか」などの表れ方を見ているため、こうしたズレはよく起こります。タイプ名より、下の心理機能グラフの上位2つ（主機能・補助機能）を自分に当てはめて読むほうが実感に合います。</p></div>';
+    }
+
+    html += '<div class="card sec">'+
+      '<div class="kicker">思考スタイル</div>'+
+      '<p class="body">'+info.style+'</p>'+
+      '<div class="kicker" style="margin-top:14px;">強み</div>'+
+      '<p class="body">'+info.strengths.map(function(s){ return '・'+s; }).join('<br>')+'</p>'+
+      '<div class="kicker" style="margin-top:14px;">落とし穴</div>'+
+      '<p class="body">'+info.pitfall+'</p>'+
+      '<div class="kicker" style="margin-top:14px;">向いている環境</div>'+
+      '<p class="body">'+info.env+'</p>'+
+    '</div>';
+
+    html += '<div class="card sec">'+
+      '<div class="kicker">8つの心理機能</div>'+
+      radarSVG(res.fs)+
+      '<p class="tiny" style="text-align:center;margin:-2px 0 12px;">外側に近いほど、その機能をよく使う</p>'+
+      fnBars(res.fs)+
+      '<p class="tiny" style="margin-top:10px;">上位2つが<b>主機能・補助機能</b>にあたります。この並びが、その人らしい「得意な関わり方」をつくっています。</p>'+
+    '</div>';
+
+    html += '<div class="card sec">'+
+      '<div class="kicker">4つの基本軸</div>'+
+      axBars(res.ax)+
+      '<div class="axrow" style="margin-top:16px;">'+
+        '<div class="axhead"><span class="l">自己主張型 A '+pA+'%</span><span class="r">'+pT+'% 慎重型 T</span></div>'+
+        '<div class="axbar"><i class="a" style="width:'+pA+'%"></i><i class="b" style="width:'+pT+'%"></i></div>'+
+        '<div class="axis-label">自分への向き合い方（A/T）</div>'+
+      '</div>'+
+      '<p class="tiny" style="margin-top:12px;">A（自己主張型）は自信と切り替えの速さ、T（慎重型）は丁寧さと繊細さが出やすい傾向です。'+
+      (res.aPct>=50 ? '' : '') +
+      '</p>'+
+    '</div>';
+
+    if (res.straight > 0.5){
+      html += '<div class="warnbox">同じ選択肢を選ぶ割合が高め（'+Math.round(res.straight*100)+'%）でした。迷ったときは「どちらでもない」で構いませんが、もう一度だけ直感で選び直すと精度が上がります。</div>';
+    }
+
+    html += '<div class="card sec">'+
+      '<button class="btn-copy" id="btnCopy">結果をコピーする（くじらに貼れます）</button>'+
+      '<p class="share-note">タイプ・第2候補・4軸％・心理機能8つのスコアをまとめてコピーします。</p>'+
+    '</div>';
+
+    $("resultBody").innerHTML = html;
+    $("btnCopy").addEventListener("click", function(){ copyResult(res); });
+    window.__lastResult = res;
+  }
+
+  function buildShareText(res){
+    var t = res.type, atL = atLabel(res.aPct);
+    var lines = [];
+    lines.push("【MBTI診断結果（64問・心理機能つき）】");
+    lines.push("タイプ：" + t + "-" + atL + "（" + TYPES[t].name + "）");
+    lines.push("第2候補：" + res.top3[1].type + "-" + atL + "（" + TYPES[res.top3[1].type].name + " / 適合度 " + (Math.round(res.top3[1].total*10)/10) + "%）");
+    lines.push("第3候補：" + res.top3[2].type + "-" + atL + "（" + TYPES[res.top3[2].type].name + " / 適合度 " + (Math.round(res.top3[2].total*10)/10) + "%）");
+    lines.push("");
+    lines.push("■4軸");
+    DIMS.forEach(function(d){
+      var A = Math.round(res.ax[d.key].aPct);
+      lines.push(d.label + "：" + d.a + " " + A + "% ／ " + d.b + " " + (100-A) + "%");
+    });
+    lines.push("向き合い方：" + atName(res.aPct) + " " + atLabel(res.aPct) + " " + Math.round(res.aPct) + "% ／ " + (res.aPct>=50?"慎重型 T ":"自己主張型 A ") + Math.round(100-res.aPct) + "%");
+    lines.push("");
+    lines.push("■心理機能（8つ）");
+    lines.push("Ti " + Math.round(res.fs.Ti) + " ／ Te " + Math.round(res.fs.Te) + " ／ Fi " + Math.round(res.fs.Fi) + " ／ Fe " + Math.round(res.fs.Fe));
+    lines.push("Ni " + Math.round(res.fs.Ni) + " ／ Ne " + Math.round(res.fs.Ne) + " ／ Si " + Math.round(res.fs.Si) + " ／ Se " + Math.round(res.fs.Se));
+    lines.push("");
+    lines.push("診断はこちら → " + location.origin + location.pathname);
+    return lines.join("\n");
+  }
+
+  function copyResult(res){
+    var text = buildShareText(res);
+    var done = function(){ toast("コピーしました ✅"); };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+    window.__lastCopied = text;
+  }
+  function fallbackCopy(text, cb){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly","");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); cb(); }catch(e){ toast("コピーできませんでした"); }
+    document.body.removeChild(ta);
+  }
+
+  $("btnAgain").addEventListener("click", function(){
+    state.answers = new Array(TOTAL).fill(null);
+    state.idx = 0;
+    save();
+    $("btnResume").classList.add("hidden");
+    $("btnStart").textContent = "診断をはじめる";
+    startQuiz();
+  });
+
+  /* 起動時：前回の結果があれば…は出さず、intro から */
+  show("intro");
+  window.__QS = QS;
+  window.__analyze = analyze;
+})();
+</script>
+</body>
+</html>
