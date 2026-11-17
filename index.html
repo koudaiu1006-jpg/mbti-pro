@@ -551,19 +551,27 @@
   }
 
   var advanceTimer = null;
-  function answer(v){
+  function answer(v, instant){
     state.answers[state.idx] = v;
     save();
-    var nodes = optsEl.querySelectorAll(".opt");
-    for (var i=0;i<nodes.length;i++) nodes[i].classList.toggle("on", Number(nodes[i].getAttribute("data-v")) === v);
-    try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    if (!instant){
+      var nodes = optsEl.querySelectorAll(".opt");
+      for (var i=0;i<nodes.length;i++) nodes[i].classList.toggle("on", Number(nodes[i].getAttribute("data-v")) === v);
+      try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    }
     if (state.idx >= TOTAL-1){ finish(); return; }
     clearTimeout(advanceTimer);
-    advanceTimer = setTimeout(function(){
+    if (instant){
       state.idx++;
       save();
       renderQ();
-    }, 180);
+    } else {
+      advanceTimer = setTimeout(function(){
+        state.idx++;
+        save();
+        renderQ();
+      }, 180);
+    }
   }
 
   function next(){
@@ -584,7 +592,7 @@
 
   document.addEventListener("keydown", function(e){
     if (screens.quiz.classList.contains("hidden")) return;
-    if (e.key >= "1" && e.key <= "5"){ e.preventDefault(); clearTimeout(advanceTimer); answer(Number(e.key)); }
+    if (e.key >= "1" && e.key <= "5"){ e.preventDefault(); clearTimeout(advanceTimer); answer(Number(e.key), true); }
     else if (e.key === "ArrowLeft" || e.key === "Backspace"){
       if (state.idx > 0){ e.preventDefault(); state.idx--; save(); renderQ(); }
     }
