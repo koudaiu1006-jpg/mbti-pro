@@ -499,9 +499,13 @@
 
   /* ---------- intro ---------- */
   var saved = loadSaved();
+  function updateResumeLabel(count){
+    var b = $("btnResume");
+    b.classList.remove("hidden");
+    b.textContent = count >= TOTAL ? "前回の結果を見る" : "続きから再開する（" + count + " / " + TOTAL + " 回答済み）";
+  }
   if (saved && saved.count > 0){
-    $("btnResume").classList.remove("hidden");
-    $("btnResume").textContent = "続きから再開する（" + saved.count + " / " + TOTAL + " 回答済み）";
+    updateResumeLabel(saved.count);
     $("btnStart").textContent = "はじめから診断する";
   }
 
@@ -515,8 +519,7 @@
     var s = loadSaved();
     if (s){
       state.answers = s.answers;
-      state.idx = s.count >= TOTAL ? TOTAL-1 : s.idx;
-      // 最初の未回答へ
+      if (s.count >= TOTAL){ finish(); return; }
       var firstUn = state.answers.indexOf(null);
       state.idx = firstUn === -1 ? TOTAL-1 : firstUn;
     }
@@ -588,8 +591,7 @@
   $("btnQuit").addEventListener("click", function(){
     save();
     var cnt = state.answers.filter(function(v){ return typeof v === "number"; }).length;
-    $("btnResume").classList.remove("hidden");
-    $("btnResume").textContent = "続きから再開する（" + cnt + " / " + TOTAL + " 回答済み）";
+    updateResumeLabel(cnt);
     $("btnStart").textContent = "はじめから診断する";
     show("intro");
   });
