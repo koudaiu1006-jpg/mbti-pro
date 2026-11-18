@@ -129,6 +129,16 @@
   .axis-label{font-size:11px; color:var(--muted); text-align:center; margin-top:3px;}
 
   .radar{display:block; width:100%; max-width:330px; margin:6px auto 2px;}
+  .duel-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:#fff;
+              background:linear-gradient(135deg,#6d5efc,#ec4899); padding:4px 11px; border-radius:999px; margin-bottom:10px; align-self:flex-start;}
+  .duel-badge.runoff{background:linear-gradient(135deg,#ec4899,#f59e0b);}
+  .duel-opt{display:flex; flex-direction:column; gap:5px; width:100%; text-align:left; border:1.5px solid var(--line);
+            background:#fff; border-radius:16px; padding:16px; cursor:pointer; transition:all .14s ease;}
+  .duel-opt:active{transform:scale(.99);}
+  .duel-opt.on{border-color:var(--accent); background:#f3f0ff; box-shadow:0 6px 18px rgba(109,94,252,.18);}
+  .duel-tag{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:var(--accent); letter-spacing:.04em;}
+  .duel-txt{font-size:15px; font-weight:700; color:var(--ink); line-height:1.55;}
+  .duel-vs{text-align:center; font-size:11px; font-weight:900; color:var(--muted); letter-spacing:.12em; margin:-2px 0;}
   .btn-copy{width:100%; border:0; border-radius:14px; padding:15px; font-size:15px; font-weight:800; color:#fff; cursor:pointer;
             background:linear-gradient(135deg,#4b3ae8,#a855f7); box-shadow:0 10px 22px rgba(109,94,252,.30); margin-top:6px;}
   .btn-copy:active{transform:scale(.99);}
@@ -152,14 +162,14 @@
   <!-- ===== intro ===== -->
   <section id="screen-intro" class="screen">
     <div class="card">
-      <span class="pill">64問・心理機能グラフつき</span>
+      <span class="pill">72問＋決選2択・心理機能グラフつき</span>
       <h1>サイトによって結果が変わる<br>MBTIに、終止符を。</h1>
-      <p class="lead">ユングの8つの心理機能（Ti・Te・Fi・Fe・Ni・Ne・Si・Se）を各6問・計48問で測り、4つの基本軸とA/Tを16問で確認。64問から、あなたの「思考のクセ」を立体的に描き出します。</p>
+      <p class="lead">ユングの8つの心理機能（Ti・Te・Fi・Fe・Ni・Ne・Si・Se）を48問、4軸とA/Tを16問、さらに「AとBならどっち？」の直接対決を8問。上位が接戦なら追加の決選投票まで行い、迷いなく1タイプに絞り込みます。</p>
       <ul class="facts">
-        <li><span class="ico">🎯</span><span><b>8つの心理機能を精密測定</b><br>主機能〜劣等機能の並び（心理機能スタック）と照合します。</span></li>
-        <li><span class="ico">⏱️</span><span><b>64問・約7〜9分</b><br>1問ずつ自動で進み、戻るボタンで見直せます。</span></li>
+        <li><span class="ico">🎯</span><span><b>8心理機能＋苦手機能補正</b><br>得意な機能だけでなく「本来苦手な機能」との整合性も判定します。</span></li>
+        <li><span class="ico">⚔️</span><span><b>直接対決＆接戦時の決選投票</b><br>「どちらでもない」を避ける2択と、接戦時の決選質問で1つに決着。</span></li>
+        <li><span class="ico">⏱️</span><span><b>72問・約8〜10分</b><br>1問ずつ自動で進み、戻るボタンで見直せます。</span></li>
         <li><span class="ico">💾</span><span><b>途中保存つき</b><br>途中で閉じても、同じ端末なら続きから再開できます。</span></li>
-        <li><span class="ico">📊</span><span><b>結果はグラフとコピーで</b><br>心理機能レーダー・4軸％・第2／第3候補まで表示。</span></li>
       </ul>
       <button class="start" id="btnStart">診断をはじめる</button>
       <button class="ghost hidden" id="btnResume">続きから再開する</button>
@@ -171,10 +181,11 @@
   <section id="screen-quiz" class="screen hidden">
     <div class="progress"><i id="progBar"></i></div>
     <div class="qmeta">
-      <span><span class="cur" id="qnum">1</span> / 64</span>
-      <span id="qstep">ステップ 1 / 8</span>
+      <span><span class="cur" id="qnum">1</span> / <span id="qtotal">72</span></span>
+      <span id="qstep">ステップ 1 / 9</span>
     </div>
     <div class="card qcard">
+      <div id="duelBadgeWrap"></div>
       <div class="qtext" id="qtext">…</div>
       <div class="opts" id="opts"></div>
     </div>
@@ -182,7 +193,7 @@
       <button id="btnBack">← 戻る</button>
       <button id="btnQuit">中断</button>
     </div>
-    <p class="hint">キーボードの 1〜5 でも回答できます</p>
+    <p class="hint" id="qhint">キーボードの 1〜5 でも回答できます</p>
   </section>
 
   <!-- ===== result ===== -->
@@ -192,7 +203,7 @@
   </section>
 
   <footer>
-    MBTI 精密診断 ・ 64問 / 8心理機能 + 4軸 + A・T<br>
+    MBTI 精密診断 ・ 72問＋決選投票 / 8心理機能 + 4軸 + A・T<br>
     結果は自己理解の参考としてお楽しみください。
   </footer>
 </div>
@@ -421,7 +432,43 @@
     {key:"JP", a:"J", b:"P", label:"外界への接し方"}
   ];
 
-  /* ---------- 出題順をつくる（8問×8ステップ、心理機能6問＋軸2問） ---------- */
+  /* ---------- 直接対決（8問：心理機能4 + 4軸4） ---------- */
+  var DUELS = [
+    {kind:"duel", mode:"fn", a:"Ti", b:"Te",
+      t:"考えをまとめる場面で、どうしても外せないのはどっち？",
+      ta:"自分の中で「なぜそうなるか」の筋道が完全に納得できること",
+      tb:"細かい理屈より、まず結果につながる段取りが回ること"},
+    {kind:"duel", mode:"fn", a:"Fi", b:"Fe",
+      t:"大切な判断をするとき、最終的に優先するのはどっち？",
+      ta:"自分の本音や「これは譲れない」という内側の価値観",
+      tb:"その場の空気や、周りの人との調和・気持ちのバランス"},
+    {kind:"duel", mode:"fn", a:"Ni", b:"Ne",
+      t:"アイデアや情報を扱うとき、ワクワクするのはどっち？",
+      ta:"バラバラの点がつながって「つまりこういうことか」と1つに絞れる瞬間",
+      tb:"「これもアリかも！」と可能性や選択肢が次々に広がっていく瞬間"},
+    {kind:"duel", mode:"fn", a:"Si", b:"Se",
+      t:"初めての状況で頼りにするのはどっち？",
+      ta:"過去の経験や「前にうまくいったやり方」のストック",
+      tb:"その場の空気や目の前の様子を見て、即興で反応する感覚"},
+    {kind:"duel", mode:"duel_ax", dim:"EI", a:"E", b:"I",
+      t:"丸一日なにも予定がない休日、エネルギーが満ちるのはどっち？",
+      ta:"誰かと会って話したり、外に出て刺激を受けたりする時間",
+      tb:"ひとりで好きなことに没頭したり、静かに自分のペースで過ごす時間"},
+    {kind:"duel", mode:"duel_ax", dim:"SN", a:"S", b:"N",
+      t:"人の話を聞いていて「わかりやすい！」と感じるのはどっち？",
+      ta:"具体的な数字・実例・実際に起きた出来事から順番に話してくれること",
+      tb:"まず「要するにどういうことか」の全体像やイメージから話してくれること"},
+    {kind:"duel", mode:"duel_ax", dim:"TF", a:"T", b:"F",
+      t:"親しい人から相談を受けたとき、最初に浮かぶのはどっち？",
+      ta:"「どうすれば解決できるか」原因と対策を整理してあげたい",
+      tb:"「まずは大変だったね」と気持ちを受け止めて寄り添ってあげたい"},
+    {kind:"duel", mode:"duel_ax", dim:"JP", a:"J", b:"P",
+      t:"旅行やプロジェクトを進めるとき、ストレスが少ないのはどっち？",
+      ta:"あらかじめ大枠のスケジュールやゴールを決めてから動く",
+      tb:"そのときの気分や状況に合わせて、途中で柔軟に変えながら動く"}
+  ];
+
+  /* ---------- 出題順をつくる（8問×8ステップ + 直接対決8問 = 72問） ---------- */
   function buildQuestions(){
     var funcPool = [];
     // 各機能の6問は [0,4,1,2,5,3] の順に出す（肯定文と逆転項目を交互に散らす）
@@ -445,16 +492,17 @@
       for (var s=0; s<6; s++){ out.push(funcPool[fi++]); }
       for (var s2=0; s2<2; s2++){ out.push(axisPool[ai++]); }
     }
-    return out.filter(Boolean).slice(0,64);
+    for (var du=0; du<DUELS.length; du++){ out.push(DUELS[du]); }
+    return out.filter(Boolean);
   }
 
   var QS = buildQuestions();
   var TOTAL = QS.length;
 
   /* ---------- 状態・保存 ---------- */
-  var LS_ANS = "mbtiPro.v1.answers";
-  var LS_IDX = "mbtiPro.v1.idx";
-  var state = { answers:new Array(TOTAL).fill(null), idx:0 };
+  var LS_ANS = "mbtiPro.v2.answers";
+  var LS_IDX = "mbtiPro.v2.idx";
+  var state = { answers:new Array(TOTAL).fill(null), idx:0, runoff:null };
 
   function storageGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function storageSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
@@ -512,6 +560,7 @@
   $("btnStart").addEventListener("click", function(){
     state.answers = new Array(TOTAL).fill(null);
     state.idx = 0;
+    state.runoff = null;
     save();
     startQuiz();
   });
@@ -519,7 +568,8 @@
     var s = loadSaved();
     if (s){
       state.answers = s.answers;
-      if (s.count >= TOTAL){ finish(); return; }
+      state.runoff = null;
+      if (s.count >= TOTAL){ checkRunoffOrFinish(); return; }
       var firstUn = state.answers.indexOf(null);
       state.idx = firstUn === -1 ? TOTAL-1 : firstUn;
     }
@@ -533,28 +583,74 @@
 
   /* ---------- 質問の描画 ---------- */
   var OPT_LABELS = ["全く当てはまらない","あまり当てはまらない","どちらでもない","やや当てはまる","非常に当てはまる"];
-  var optsEl = $("opts"), qtextEl = $("qtext"), qnumEl = $("qnum"), qstepEl = $("qstep"), progEl = $("progBar");
+  var optsEl = $("opts"), qtextEl = $("qtext"), qnumEl = $("qnum"), qtotalEl = $("qtotal"), qstepEl = $("qstep"), progEl = $("progBar");
+  var badgeWrap = $("duelBadgeWrap"), qhintEl = $("qhint");
 
   function renderQ(){
+    optsEl.innerHTML = "";
+    if (state.runoff){
+      var rf = state.runoff, rq = rf.qs[rf.idx], rTotal = rf.qs.length;
+      badgeWrap.innerHTML = '<span class="duel-badge runoff">⚔️ 接戦のため決選投票（' + rf.pair[0] + ' vs ' + rf.pair[1] + '）</span>';
+      qtextEl.textContent = rq.t;
+      qnumEl.textContent = String(rf.idx + 1);
+      qtotalEl.textContent = String(rTotal);
+      qstepEl.textContent = "最終決選 " + (rf.idx + 1) + " / " + rTotal;
+      progEl.style.width = Math.round(((rf.idx) / rTotal) * 100) + "%";
+      qhintEl.textContent = "キーボードの 1 / 2 でも回答できます";
+      renderDuelOptions(rq.ta, rq.tb, rf.answers[rf.idx], function(val){ answerRunoff(val); });
+      $("btnBack").disabled = false;
+      return;
+    }
+
     var i = state.idx, q = QS[i];
     qtextEl.textContent = q.t;
     qnumEl.textContent = String(i+1);
-    qstepEl.textContent = "ステップ " + (Math.floor(i/8)+1) + " / 8";
+    qtotalEl.textContent = String(TOTAL);
+    var totalSteps = Math.ceil(TOTAL / 8);
+    qstepEl.textContent = i >= 64 ? "ステップ 9 / 9（直接対決）" : ("ステップ " + (Math.floor(i/8)+1) + " / " + totalSteps);
     var done = state.answers.filter(function(v){ return typeof v === "number"; }).length;
     progEl.style.width = Math.round((done / TOTAL) * 100) + "%";
-    optsEl.innerHTML = "";
-    for (var v=1; v<=5; v++){
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "opt";
-      b.setAttribute("data-v", String(v));
-      b.setAttribute("aria-label", OPT_LABELS[v-1]);
-      b.innerHTML = '<span class="dot">' + v + '</span><span>' + OPT_LABELS[v-1] + '</span>';
-      if (state.answers[i] === v) b.classList.add("on");
-      b.addEventListener("click", (function(val){ return function(){ answer(val); }; })(v));
-      optsEl.appendChild(b);
+
+    if (q.kind === "duel"){
+      badgeWrap.innerHTML = '<span class="duel-badge">⚔️ A vs B 直接対決</span>';
+      qhintEl.textContent = "キーボードの 1 / 2 でも回答できます";
+      renderDuelOptions(q.ta, q.tb, state.answers[i], function(val){ answer(val); });
+    } else {
+      badgeWrap.innerHTML = "";
+      qhintEl.textContent = "キーボードの 1〜5 でも回答できます";
+      for (var v=1; v<=5; v++){
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "opt";
+        b.setAttribute("data-v", String(v));
+        b.setAttribute("aria-label", OPT_LABELS[v-1]);
+        b.innerHTML = '<span class="dot">' + v + '</span><span>' + OPT_LABELS[v-1] + '</span>';
+        if (state.answers[i] === v) b.classList.add("on");
+        b.addEventListener("click", (function(val){ return function(){ answer(val); }; })(v));
+        optsEl.appendChild(b);
+      }
     }
     $("btnBack").disabled = i === 0;
+  }
+
+  function renderDuelOptions(ta, tb, currentVal, onPick){
+    var items = [{val:1, tag:"A", txt:ta}, {val:2, tag:"B", txt:tb}];
+    items.forEach(function(it, idx){
+      if (idx === 1){
+        var vs = document.createElement("div");
+        vs.className = "duel-vs";
+        vs.textContent = "VS";
+        optsEl.appendChild(vs);
+      }
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "duel-opt";
+      b.setAttribute("data-v", String(it.val));
+      b.innerHTML = '<span class="duel-tag">選択肢 ' + it.tag + '</span><span class="duel-txt">' + it.txt + '</span>';
+      if (currentVal === it.val) b.classList.add("on");
+      b.addEventListener("click", function(){ onPick(it.val); });
+      optsEl.appendChild(b);
+    });
   }
 
   var advanceTimer = null;
@@ -562,11 +658,11 @@
     state.answers[state.idx] = v;
     save();
     if (!instant){
-      var nodes = optsEl.querySelectorAll(".opt");
+      var nodes = optsEl.querySelectorAll("[data-v]");
       for (var i=0;i<nodes.length;i++) nodes[i].classList.toggle("on", Number(nodes[i].getAttribute("data-v")) === v);
       try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
     }
-    if (state.idx >= TOTAL-1){ finish(); return; }
+    if (state.idx >= TOTAL-1){ checkRunoffOrFinish(); return; }
     clearTimeout(advanceTimer);
     if (instant){
       state.idx++;
@@ -581,15 +677,42 @@
     }
   }
 
+  function answerRunoff(v, instant){
+    var rf = state.runoff;
+    rf.answers[rf.idx] = v;
+    if (!instant){
+      var nodes = optsEl.querySelectorAll("[data-v]");
+      for (var i=0;i<nodes.length;i++) nodes[i].classList.toggle("on", Number(nodes[i].getAttribute("data-v")) === v);
+      try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
+    }
+    if (rf.idx >= rf.qs.length - 1){ finish(); return; }
+    clearTimeout(advanceTimer);
+    if (instant){
+      rf.idx++;
+      renderQ();
+    } else {
+      advanceTimer = setTimeout(function(){
+        rf.idx++;
+        renderQ();
+      }, 180);
+    }
+  }
+
   function next(){
     if (state.idx < TOTAL-1){ state.idx++; save(); renderQ(); }
   }
 
   $("btnBack").addEventListener("click", function(){
+    if (state.runoff){
+      if (state.runoff.idx > 0){ state.runoff.idx--; renderQ(); }
+      else { state.runoff = null; state.idx = TOTAL - 1; renderQ(); }
+      return;
+    }
     if (state.idx > 0){ state.idx--; save(); renderQ(); }
   });
   $("btnQuit").addEventListener("click", function(){
     save();
+    state.runoff = null;
     var cnt = state.answers.filter(function(v){ return typeof v === "number"; }).length;
     updateResumeLabel(cnt);
     $("btnStart").textContent = "はじめから診断する";
@@ -598,8 +721,22 @@
 
   document.addEventListener("keydown", function(e){
     if (screens.quiz.classList.contains("hidden")) return;
-    if (e.key >= "1" && e.key <= "5"){ e.preventDefault(); clearTimeout(advanceTimer); answer(Number(e.key), true); }
-    else if (e.key === "ArrowLeft" || e.key === "Backspace"){
+    if (state.runoff){
+      if (e.key === "1" || e.key === "2"){ e.preventDefault(); clearTimeout(advanceTimer); answerRunoff(Number(e.key), true); }
+      else if (e.key === "ArrowLeft" || e.key === "Backspace"){
+        e.preventDefault();
+        if (state.runoff.idx > 0){ state.runoff.idx--; renderQ(); }
+        else { state.runoff = null; state.idx = TOTAL - 1; renderQ(); }
+      }
+      return;
+    }
+    var q = QS[state.idx];
+    if (q && q.kind === "duel"){
+      if (e.key === "1" || e.key === "2"){ e.preventDefault(); clearTimeout(advanceTimer); answer(Number(e.key), true); }
+    } else if (e.key >= "1" && e.key <= "5"){
+      e.preventDefault(); clearTimeout(advanceTimer); answer(Number(e.key), true);
+    }
+    if (e.key === "ArrowLeft" || e.key === "Backspace"){
       if (state.idx > 0){ e.preventDefault(); state.idx--; save(); renderQ(); }
     }
   });
@@ -607,7 +744,7 @@
   /* ---------- 判定 ---------- */
   function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 
-  function analyze(answers){
+  function analyze(answers, runoff){
     // 心理機能（各6問・リバース処理、6〜30点 → 0〜100%）
     var fs = {};
     FUNCS.forEach(function(f){
@@ -621,14 +758,33 @@
       fs[f] = clamp(((sum - items.length) / (items.length * 4)) * 100, 0, 100);
     });
 
-    // 4軸 + A/T
+    // 心理機能の直接対決を反映
+    for (var di=0; di<TOTAL; di++){
+      var dq = QS[di];
+      if (dq.kind === "duel" && dq.mode === "fn"){
+        var dv = answers[di];
+        if (dv === 1){
+          fs[dq.a] = clamp(fs[dq.a] + 10, 0, 100);
+          fs[dq.b] = clamp(fs[dq.b] - 6, 0, 100);
+        } else if (dv === 2){
+          fs[dq.b] = clamp(fs[dq.b] + 10, 0, 100);
+          fs[dq.a] = clamp(fs[dq.a] - 6, 0, 100);
+        }
+      }
+    }
+
+    // 4軸 + A/T（直接対決の重みも含める）
     var ax = {};
     DIMS.forEach(function(d){
       var pa = [], pb = [];
       for (var i=0;i<TOTAL;i++){
         var q = QS[i];
-        if (q.kind !== "a" || q.dim !== d.key) continue;
-        (q.pole === d.a ? pa : pb).push(answers[i] == null ? 3 : answers[i]);
+        if (q.kind === "a" && q.dim === d.key){
+          (q.pole === d.a ? pa : pb).push(answers[i] == null ? 3 : answers[i]);
+        } else if (q.kind === "duel" && q.mode === "duel_ax" && q.dim === d.key){
+          if (answers[i] === 1){ pa.push(5, 5); pb.push(1, 1); }
+          else if (answers[i] === 2){ pa.push(1, 1); pb.push(5, 5); }
+        }
       }
       var ma = pa.reduce(function(s,v){return s+v;},0) / Math.max(1,pa.length);
       var mb = pb.reduce(function(s,v){return s+v;},0) / Math.max(1,pb.length);
@@ -643,24 +799,28 @@
     }, 0);
     var aPct = clamp(((aSum - atItems.length) / (atItems.length * 4)) * 100, 0, 100);
 
-    // タイプ適合度
+    // タイプ適合度（上位3機能 + 苦手機能(第4機能)ペナルティ + 主機能ランクボーナス）
     var vals = FUNCS.map(function(f){ return fs[f]; });
     var sorted = vals.slice().sort(function(x,y){ return y-x; });
     var rankOf = function(f){ return sorted.indexOf(fs[f]); };
-    var W = [4,3,2,1];
+    var W = [5, 3.5, 1.5];
 
     var scored = Object.keys(STACKS).map(function(type){
       var st = STACKS[type];
       var fFit = 0, wsum = 0;
-      for (var k=0;k<4;k++){ fFit += W[k] * fs[st[k]]; wsum += W[k]; }
+      for (var k=0;k<3;k++){ fFit += W[k] * fs[st[k]]; wsum += W[k]; }
       fFit = fFit / wsum;
+
+      // 苦手機能（第4機能）の整合性：本来いちばん苦手な機能が極端に高いと減点
+      var infExcess = Math.max(0, fs[st[3]] - 55) * 0.28 + Math.max(0, fs[st[3]] - fs[st[0]] + 12) * 0.45;
+      var infFit = clamp(100 - infExcess, 0, 100);
 
       // 影の機能との整合性：同じ機能の反対態度より、表の態度が優勢か
       var shadowPenalty = 0, sw = 0;
       for (var m=0;m<4;m++){
         var sh = FLIP[st[m]];
         var diff = Math.max(0, fs[sh] - fs[st[m]]);
-        shadowPenalty += W[m] * diff; sw += W[m];
+        shadowPenalty += (4 - m) * diff; sw += (4 - m);
       }
       shadowPenalty = shadowPenalty / sw;
       var shadowFit = clamp(100 - shadowPenalty, 0, 100);
@@ -675,15 +835,35 @@
       }
       aFit = aFit / 4;
 
-      var bonus = [5,3.5,2,0.5,0,0,0,0][rankOf(st[0])] || 0;
+      var bonus = [8, 5, 2.5, 0.5, 0, 0, 0, 0][rankOf(st[0])] || 0;
 
-      var total = 0.56 * fFit + 0.30 * aFit + 0.14 * shadowFit + bonus;
+      var total = 0.50 * fFit + 0.28 * aFit + 0.12 * shadowFit + 0.10 * infFit + bonus;
       return {
         type:type, name:TYPES[type].name,
         total:clamp(total, 0, 99.4),
-        fFit:fFit, aFit:aFit, shadowFit:shadowFit, bonus:bonus
+        fFit:fFit, aFit:aFit, shadowFit:shadowFit, infFit:infFit, bonus:bonus, runoffVotes:0
       };
     }).sort(function(p,q){ return q.total - p.total; });
+
+    var runoffInfo = null;
+    if (runoff && runoff.qs && runoff.qs.length){
+      var vCount = {};
+      vCount[runoff.pair[0]] = 0;
+      vCount[runoff.pair[1]] = 0;
+      runoff.qs.forEach(function(rq, idx){
+        var ans = runoff.answers[idx];
+        var picked = ans === 1 ? rq.winA : (ans === 2 ? rq.winB : null);
+        if (picked && vCount[picked] != null) vCount[picked]++;
+      });
+      scored.forEach(function(item){
+        if (vCount[item.type]){
+          item.runoffVotes = vCount[item.type];
+          item.total = clamp(item.total + vCount[item.type] * 3.8, 0, 99.6);
+        }
+      });
+      scored.sort(function(p,q){ return q.total - p.total; });
+      runoffInfo = { pair: runoff.pair, votes: vCount, winner: scored[0].type };
+    }
 
     // 4軸から見た傾向タイプ（整合性チェック用）
     var axisLetters = DIMS.map(function(d){ return ax[d.key].aPct >= 50 ? d.a : d.b; }).join("");
@@ -692,16 +872,60 @@
 
     var straight = (function(){
       var c = {};
-      answers.forEach(function(v){ if (v!=null) c[v]=(c[v]||0)+1; });
+      answers.forEach(function(v, idx){ if (v!=null && QS[idx].kind !== "duel") c[v]=(c[v]||0)+1; });
       var top = 0; Object.keys(c).forEach(function(k){ if (c[k]>top) top=c[k]; });
-      return top / TOTAL;
+      return top / 64;
     })();
 
     return {
       type: scored[0].type, at: aPct, aPct:aPct,
       top3: scored.slice(0,3),
-      fs: fs, ax: ax, axisLetters: axisLetters, mismatch: mism, straight: straight
+      fs: fs, ax: ax, axisLetters: axisLetters, mismatch: mism, straight: straight,
+      runoffInfo: runoffInfo
     };
+  }
+
+  function buildRunoff(t1, t2){
+    var rqs = [];
+    var RUNOFF_AX = {
+      EI:{E:"初対面や大人数の場でも、話しているうちに自然とスイッチが入る", I:"親しい少人数やひとりの時間でじっくり充電するほうがしっくりくる"},
+      SN:{S:"机上の空論より、目の前の現実・実体験・具体的な手触りを信じる", N:"今の現実だけでなく、まだ見ぬ可能性や「本質は何か」に強く惹かれる"},
+      TF:{T:"最終決断は「論理的に筋が通っているか・合理的か」で下すことが多い", F:"最終決断は「誰かのためになるか・自分の心が動くか」で下すことが多い"},
+      JP:{J:"あらかじめ計画を立てて、見通し通りに物事が進むと安心する", P:"予定は余白を残しておき、その場の流れや直感で動くほうが力を発揮できる"}
+    };
+    DIMS.forEach(function(d, idx){
+      var c1 = t1[idx], c2 = t2[idx];
+      if (c1 !== c2){
+        var pairText = RUNOFF_AX[d.key];
+        rqs.push({
+          t: "最後の絞り込み：どちらか一方に決めるなら、より「素の自分」に近いのは？",
+          ta: pairText[c1], tb: pairText[c2],
+          winA: t1, winB: t2
+        });
+      }
+    });
+    // 主機能・スタイルによる直接対決を必ず1問加える
+    rqs.push({
+      t: "「自分らしさの核」として、よりしっくりくる生き方はどっち？",
+      ta: TYPES[t1].catch + "（" + FN_INFO[STACKS[t1][0]].jp + "タイプ）",
+      tb: TYPES[t2].catch + "（" + FN_INFO[STACKS[t2][0]].jp + "タイプ）",
+      winA: t1, winB: t2
+    });
+    return rqs.slice(0, 5);
+  }
+
+  function checkRunoffOrFinish(){
+    var base = analyze(state.answers, null);
+    var gap = base.top3[0].total - base.top3[1].total;
+    if (gap < 4.5){
+      var t1 = base.top3[0].type, t2 = base.top3[1].type;
+      var rqs = buildRunoff(t1, t2);
+      state.runoff = { qs: rqs, answers: new Array(rqs.length).fill(null), idx: 0, pair: [t1, t2] };
+      show("quiz");
+      renderQ();
+      return;
+    }
+    finish();
   }
 
   function atLabel(p){ return p >= 50 ? "A" : "T"; }
@@ -710,7 +934,7 @@
   /* ---------- 結果画面 ---------- */
   function finish(){
     show("result");
-    var res = analyze(state.answers);
+    var res = analyze(state.answers, state.runoff);
     renderResult(res);
     $("resultBody").scrollIntoView({block:"start"});
   }
@@ -787,6 +1011,10 @@
 
     var html = "";
     var pL = atL === "A" ? pA : pT;
+    var gap12 = Math.round((top.total - res.top3[1].total) * 10) / 10;
+    var badgeChip = res.runoffInfo
+      ? '<span class="chip">⚔️ 決選投票で確定</span>'
+      : '<span class="chip">2位と +' + gap12 + '%差で確定</span>';
     html += '<div class="hero">'+
       '<div class="tag">あなたのタイプ</div>'+
       '<div class="code">'+t+'<small>-'+atL+'</small></div>'+
@@ -795,9 +1023,15 @@
       '<div class="fitrow">'+
         '<span class="chip">適合度 '+fit+'%</span>'+
         '<span class="chip">'+atL+'（'+pL+'%）</span>'+
-        '<span class="chip">64問・心理機能診断</span>'+
+        badgeChip +
       '</div>'+
     '</div>';
+
+    if (res.runoffInfo){
+      var rf = res.runoffInfo, other = rf.pair[0] === rf.winner ? rf.pair[1] : rf.pair[0];
+      html += '<div class="card sec"><div class="kicker">決選投票の結果</div>'+
+        '<p class="body">72問時点で <b>'+rf.pair[0]+'</b> と <b>'+rf.pair[1]+'</b> が接戦だったため決選2択を実施し、<b>'+rf.winner+'（'+TYPES[rf.winner].name+'）</b> が '+rf.votes[rf.winner]+' 対 '+rf.votes[other]+' で選ばれました。</p></div>';
+    }
 
     html += '<div class="card sec">'+
       '<div class="kicker">第2・第3候補</div>'+
@@ -863,7 +1097,7 @@
   function buildShareText(res){
     var t = res.type, atL = atLabel(res.aPct);
     var lines = [];
-    lines.push("【MBTI診断結果（64問・心理機能つき）】");
+    lines.push("【MBTI診断結果（72問＋決選投票）】");
     var pA = Math.round(res.aPct), pT = 100 - pA;
     lines.push("タイプ：" + t + "-" + atL + "（" + TYPES[t].name + "）");
     lines.push("第2候補：" + res.top3[1].type + "-" + atL + "（" + TYPES[res.top3[1].type].name + " / 適合度 " + (Math.round(res.top3[1].total*10)/10) + "%）");
@@ -909,6 +1143,7 @@
   $("btnAgain").addEventListener("click", function(){
     state.answers = new Array(TOTAL).fill(null);
     state.idx = 0;
+    state.runoff = null;
     save();
     $("btnResume").classList.add("hidden");
     $("btnStart").textContent = "診断をはじめる";
